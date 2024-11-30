@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skin Tone & Type Detection</title>
+    <style>
+        /* Global Styles */
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f7f7f7;
+            color: #333;
+        }
+        
+        h1, h2, h3 {
+            font-family: 'Roboto', sans-serif;
+            color: #2c3e50;
+        }
+
+        /* Header Styling */
+        header {
+            background: linear-gradient(45deg, #3498db, #8e44ad);
+            color: white;
+            padding: 40px 0;
+            text-align: center;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin: 0;
+            letter-spacing: 1.5px;
+        }
+
+        header p {
+            font-size: 1.2rem;
+            margin-top: 10px;
+            font-weight: 300;
+        }
+
+        /* Container Styling */
+        .container {
+            width: 80%;
+            margin: 30px auto;
+            padding: 30px;
+            background-color: white;
+            box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        /* Fade-in Animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Form Styling */
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        input[type="file"] {
+            padding: 15px;
+            font-size: 1rem;
+            border: 2px solid #3498db;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            width: 80%;
+            transition: all 0.3s ease;
+        }
+
+        input[type="file"]:hover {
+            border-color: #8e44ad;
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            color: white;
+            background-color: #3498db;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+            transform: scale(1.05);
+        }
+
+        /* Result Styling */
+        #result {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        #result h2 {
+            font-size: 1.8rem;
+            font-weight: 500;
+            margin: 10px 0;
+            color: #2980b9;
+        }
+
+        #result h3 {
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+            color: #8e44ad;
+        }
+
+        #products {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        #products div {
+            background: #ecf0f1;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 10px;
+            width: 220px;
+            text-align: center;
+            box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        #products div:hover {
+            transform: translateY(-10px);
+        }
+
+        #products img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+
+        #products img:hover {
+            transform: scale(1.1);
+        }
+
+        #products p {
+            font-size: 1rem;
+            font-weight: 500;
+            color: #3498db;
+        }
+
+        /* Footer Styling */
+        footer {
+            background-color: #2c3e50;
+            color: white;
+            padding: 15px 0;
+            text-align: center;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+
+        footer p {
+            margin: 0;
+        }
+
+        /* Media Queries for Responsiveness */
+        @media (max-width: 768px) {
+            .container {
+                width: 90%;
+            }
+
+            input[type="file"], button {
+                width: 90%;
+            }
+
+            #products div {
+                width: 100%;
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Skin Tone & Type Detection</h1>
+        <p>Upload your image for a personalized skin tone and product recommendation.</p>
+    </header>
+
+    <div class="container">
+        <form id="uploadForm" enctype="multipart/form-data">
+            <input type="file" id="imageUpload" name="image" accept="image/*" required />
+            <button type="submit">Submit</button>
+        </form>
+
+        <div id="result">
+            <h2>Detected Skin Tone: <span id="skinTone"></span></h2>
+            <h2>Detected Skin Type: <span id="skinType"></span></h2>
+            <h3>Recommended Products:</h3>
+            <div id="products"></div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Skin Tone & Type Detection. All rights reserved.</p>
+    </footer>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+        
+            const formData = new FormData();
+            formData.append("image", document.getElementById('imageUpload').files[0]);
+        
+            fetch('/detect_skin', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('skinTone').innerText = data.skin_tone;
+                document.getElementById('skinType').innerText = data.skin_type;
+        
+                const productsDiv = document.getElementById('products');
+                productsDiv.innerHTML = '';
+                data.products.forEach(product => {
+                    productsDiv.innerHTML += `
+                        <div>
+                            <img src="/${product[1]}" alt="${product[0]}" />
+                            <p>${product[0]}</p>
+                        </div>
+                    `;
+                });
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    </script>
+</body>
+</html>
